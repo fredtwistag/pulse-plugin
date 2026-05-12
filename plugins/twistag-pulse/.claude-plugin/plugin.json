@@ -1,0 +1,21 @@
+{
+  "name": "twistag-pulse",
+  "description": "Twistag Pulse — AI-native delivery methodology. Five delivery agents (Spec/Arch/Code/Guard/Ship) + 8-check pre-push review layer.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Twistag",
+    "email": "engineering@twistag.com"
+  },
+  "homepage": "https://github.com/fredtwistag/pulse-plugin",
+  "repository": "https://github.com/fredtwistag/pulse-plugin",
+  "license": "MIT",
+  "keywords": [
+    "pulse",
+    "twistag",
+    "sdlc",
+    "spec-driven",
+    "ai-delivery",
+    "code-review",
+    "agentic-review"
+  ]
+}

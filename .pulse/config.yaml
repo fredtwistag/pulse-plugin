@@ -1,0 +1,45 @@
+version: 1
+base_branch: main
+
+paths:
+  artifacts: docs/pulse
+  audit: .pulse/overrides.log.md
+  reviews: .pulse/reviews
+
+ship:
+  target: vercel
+  test_command: pnpm test
+
+guard:
+  spec_conformance:
+    enabled: true
+    severity_on_fail: error
+
+  security_regression:
+    enabled: true
+    severity_on_fail: error
+    banned_patterns: []
+    secret_scan: true
+
+  convention_drift:
+    enabled: true
+    severity_on_fail: warning
+    rules:
+      - "Filenames in apps/pulse-dashboard/src use kebab-case."
+      - "All artifact templates live under plugins/twistag-pulse/templates."
+
+  anti_pattern_repetition:
+    enabled: false
+  performance_pitfalls:
+    enabled: false
+  test_integrity:
+    enabled: false
+  dependency_hygiene:
+    enabled: false
+    allowlist_licenses: [MIT, ISC, Apache-2.0, BSD-2-Clause, BSD-3-Clause]
+  data_api_safety:
+    enabled: false
+
+overrides:
+  require_second_engineer: [security_regression, data_api_safety]
+  weekly_threshold_per_engineer: 5

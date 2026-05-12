@@ -1,0 +1,68 @@
+# .pulse/config.yaml — per-project Pulse configuration.
+# Copy this file into your project root as `.pulse/config.yaml` and tune.
+
+version: 1
+
+# Branch the diff is computed against when running /pulse-guard.
+base_branch: main
+
+# Where the dashboard reads artifacts from. Defaults are below.
+paths:
+  artifacts: docs/pulse
+  audit: .pulse/overrides.log.md
+  reviews: .pulse/reviews
+
+# Deploy target for /pulse-ship. Supported in v1: vercel, github-actions.
+ship:
+  target: vercel
+  vercel:
+    project: <vercel-project-id>
+    team: <vercel-team-id>
+  test_command: pnpm test
+
+# Per-check tuning for /pulse-guard.
+guard:
+  # Checks 1-3 implemented in Slice 2.
+  spec_conformance:
+    enabled: true
+    severity_on_fail: error
+
+  security_regression:
+    enabled: true
+    severity_on_fail: error
+    # Patterns that, if reintroduced, fail this check. One regex per line.
+    banned_patterns:
+      - "TODO: remove this auth bypass"
+    # Files where secrets must never appear.
+    secret_scan: true
+
+  convention_drift:
+    enabled: true
+    severity_on_fail: warning
+    # House style rules — natural language, evaluated by the convention-drift sub-agent.
+    rules: []
+
+  # Checks 4-8 implemented in Slice 4.
+  anti_pattern_repetition:
+    enabled: false
+    threshold: 3            # same pattern in N+ files fails
+
+  performance_pitfalls:
+    enabled: false
+
+  test_integrity:
+    enabled: false
+
+  dependency_hygiene:
+    enabled: false
+    allowlist_licenses: [MIT, ISC, Apache-2.0, BSD-2-Clause, BSD-3-Clause]
+
+  data_api_safety:
+    enabled: false
+
+# Override policy.
+overrides:
+  # Checks that require a second engineer's name in the override reason.
+  require_second_engineer: [security_regression, data_api_safety]
+  # Maximum overrides per engineer per rolling 7 days before the dashboard flags it.
+  weekly_threshold_per_engineer: 5
