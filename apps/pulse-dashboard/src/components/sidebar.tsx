@@ -2,6 +2,7 @@ import Link from "next/link";
 import { loadView } from "@/lib/load";
 import { titleOf } from "@/lib/title";
 import { SidebarLink } from "./sidebar-link";
+import { SidebarSearch } from "./sidebar-search";
 
 /**
  * Sidebar — server component. Walks docs/pulse/ at request time and renders
@@ -25,8 +26,18 @@ export function Sidebar() {
         </p>
       </div>
 
+      <div className="mb-3">
+        <SidebarSearch />
+      </div>
+
       <SidebarSection label="Overview">
         <SidebarLink href="/">Home</SidebarLink>
+      </SidebarSection>
+
+      <SidebarSection label="Project">
+        <SidebarLink href="/db">Database</SidebarLink>
+        <SidebarLink href="/api">API</SidebarLink>
+        <SidebarLink href="/design">Design system</SidebarLink>
       </SidebarSection>
 
       <SidebarSection label={`Epics (${view.epics.length})`}>
