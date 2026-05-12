@@ -47,7 +47,7 @@ export function walkArtifacts(root: string): ArtifactTree {
         artifacts.push({
           path: full,
           relPath: relative(root, full),
-          frontmatter: data as Frontmatter,
+          frontmatter: normalize(data) as Frontmatter,
           body: content,
         });
       } catch (err) {
@@ -61,4 +61,27 @@ export function walkArtifacts(root: string): ArtifactTree {
 
   artifacts.sort((a, b) => a.relPath.localeCompare(b.relPath));
   return { artifacts, errors };
+}
+
+/**
+ * gray-matter parses YAML dates (e.g. `created: 2026-05-01`) into JS Date
+ * objects. Date is not a valid React child, so coerce every Date to an
+ * ISO-date string (YYYY-MM-DD) recursively. Strings and other primitives
+ * pass through unchanged.
+ */
+function normalize(value: unknown): unknown {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  if (Array.isArray(value)) {
+    return value.map(normalize);
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = normalize(v);
+    }
+    return out;
+  }
+  return value;
 }

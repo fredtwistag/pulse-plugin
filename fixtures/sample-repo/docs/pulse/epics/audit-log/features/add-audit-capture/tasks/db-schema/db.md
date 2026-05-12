@@ -1,7 +1,5 @@
 ---
-id: db-schema-diagram
-type: task
-status: shipped
+kind: db
 created: 2026-05-03
 updated: 2026-05-06
 links:

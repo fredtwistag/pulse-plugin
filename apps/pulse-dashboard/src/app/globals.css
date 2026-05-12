@@ -68,3 +68,78 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
+/* Markdown body — GitHub-grade prose for spec / ADR / db / api content.
+   Scaled to match github.com blob view at the type level. */
+.prose-pulse {
+  color: var(--color-fg);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.prose-pulse h1,
+.prose-pulse h2,
+.prose-pulse h3,
+.prose-pulse h4,
+.prose-pulse h5,
+.prose-pulse h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.5em 0 0.5em;
+}
+.prose-pulse h1 {
+  font-size: 1.875rem;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border);
+}
+.prose-pulse h2 {
+  font-size: 1.5rem;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border);
+}
+.prose-pulse h3 {
+  font-size: 1.25rem;
+}
+.prose-pulse h4 {
+  font-size: 1rem;
+}
+.prose-pulse p,
+.prose-pulse ul,
+.prose-pulse ol,
+.prose-pulse blockquote {
+  margin: 0.75em 0;
+}
+.prose-pulse ul,
+.prose-pulse ol {
+  padding-left: 1.5em;
+}
+.prose-pulse li + li {
+  margin-top: 0.25em;
+}
+.prose-pulse blockquote {
+  border-left: 0.25em solid var(--color-border);
+  color: var(--color-muted);
+  padding: 0 1em;
+}
+.prose-pulse hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 2em 0;
+}
+.prose-pulse table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.prose-pulse th,
+.prose-pulse td {
+  border: 1px solid var(--color-border);
+  padding: 0.4em 0.75em;
+  text-align: left;
+}
+.prose-pulse th {
+  background: var(--color-canvas-subtle);
+  font-weight: 600;
+}
+.prose-pulse img {
+  max-width: 100%;
+  height: auto;
+}

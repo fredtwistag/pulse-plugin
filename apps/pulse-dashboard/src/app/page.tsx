@@ -1,84 +1,102 @@
-import { ARTIFACTS_ROOT } from "@/lib/config";
-import { walkArtifacts } from "@/lib/parser";
+import Link from "next/link";
+import { PageHeader, PageShell } from "@/components/page-shell";
+import { StatusBadge } from "@/components/status-badge";
+import { loadView } from "@/lib/load";
+import { titleOf } from "@/lib/title";
+import { countAll } from "@/lib/parser";
 
 export default function HomePage() {
-  const tree = walkArtifacts(ARTIFACTS_ROOT);
-
-  const byType = new Map<string, number>();
-  for (const a of tree.artifacts) {
-    const t = (a.frontmatter.type as string) ?? "unknown";
-    byType.set(t, (byType.get(t) ?? 0) + 1);
-  }
+  const { view, tree, root } = loadView();
+  const counts = countAll(view);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <header className="mb-10 border-b border-[var(--color-border)] pb-6">
-        <p className="text-sm uppercase tracking-wider text-[var(--color-muted)]">
-          Pulse Dashboard · Slice 0
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold">
-          Read-only viewer over <code>docs/pulse/</code>
-        </h1>
-        <p className="mt-3 text-[var(--color-muted)]">
-          Slice 0 wires the parser and renders raw frontmatter. Slice 1 builds
-          the sidebar tree + Mermaid rendering and the per-artifact detail
-          pages.
-        </p>
-      </header>
+    <PageShell>
+      <PageHeader
+        eyebrow="Pulse Dashboard · Slice 1"
+        title="Project overview"
+        description="Read-only viewer over docs/pulse/ and .pulse/. Specs, ADRs, DB models, API design, and the override audit log — one screen."
+      />
 
       <section className="mb-10">
-        <h2 className="text-lg font-semibold">Artifacts root</h2>
-        <p className="mt-1 font-mono text-sm text-[var(--color-muted)]">
-          {ARTIFACTS_ROOT}
-        </p>
+        <p className="font-mono text-xs text-[var(--color-muted)]">{root}</p>
       </section>
 
-      <section className="mb-10">
-        <h2 className="text-lg font-semibold">Summary</h2>
-        {tree.artifacts.length === 0 ? (
-          <p className="mt-2 text-[var(--color-muted)]">
-            No artifacts found. Run <code>/pulse-spec</code> against this
-            project or point <code>PULSE_ARTIFACTS_ROOT</code> at a real repo.
+      <section className="mb-12">
+        <h2 className="mb-3 text-lg font-semibold">Counts</h2>
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+          {(
+            [
+              ["epics", counts.epics],
+              ["features", counts.features],
+              ["tasks", counts.tasks],
+              ["adrs", counts.adrs],
+              ["companions", counts.companions],
+            ] as const
+          ).map(([label, n]) => (
+            <li
+              key={label}
+              className="rounded-md border border-[var(--color-border)] bg-[var(--color-canvas-subtle)] px-4 py-3"
+            >
+              <div className="text-xs uppercase tracking-wider text-[var(--color-muted)]">
+                {label}
+              </div>
+              <div className="mt-1 text-2xl font-semibold">{n}</div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mb-12">
+        <div className="mb-3 flex items-end justify-between">
+          <h2 className="text-lg font-semibold">Epics</h2>
+          <Link
+            className="text-sm"
+            href={"/epics"}
+          >
+            See all →
+          </Link>
+        </div>
+        {view.epics.length === 0 ? (
+          <p className="text-[var(--color-muted)]">
+            No epics yet — run <code>/pulse-spec</code> to add one.
           </p>
         ) : (
-          <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {[...byType.entries()].map(([type, n]) => (
-              <li
-                key={type}
-                className="rounded-md border border-[var(--color-border)] bg-[var(--color-canvas-subtle)] px-4 py-3"
-              >
-                <div className="text-xs uppercase tracking-wider text-[var(--color-muted)]">
-                  {type}
-                </div>
-                <div className="mt-1 text-2xl font-semibold">{n}</div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {view.epics.slice(0, 6).map((epic) => (
+              <li key={epic.slug}>
+                <Link
+                  href={`/epics/${epic.slug}`}
+                  className="block rounded-md border border-[var(--color-border)] p-4 hover:border-[var(--color-accent)]"
+                >
+                  <div className="flex items-center gap-2">
+                    <StatusBadge
+                      status={epic.spec.frontmatter.status as string | undefined}
+                    />
+                    <span className="text-xs text-[var(--color-muted)]">
+                      {epic.slug}
+                    </span>
+                  </div>
+                  <div className="mt-2 font-medium">
+                    {titleOf(epic.spec) ?? epic.slug}
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--color-muted)]">
+                    {epic.features.length} feature
+                    {epic.features.length === 1 ? "" : "s"} ·{" "}
+                    {epic.features.reduce((n, f) => n + f.tasks.length, 0)} tasks
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="mb-10">
-        <h2 className="text-lg font-semibold">Artifact list</h2>
-        <ul className="mt-3 divide-y divide-[var(--color-border)] rounded-md border border-[var(--color-border)]">
-          {tree.artifacts.map((a) => (
-            <li key={a.relPath} className="px-4 py-3">
-              <div className="font-mono text-sm">{a.relPath}</div>
-              <div className="mt-1 text-xs text-[var(--color-muted)]">
-                {(a.frontmatter.type as string) ?? "(no type)"} ·{" "}
-                {(a.frontmatter.status as string) ?? "(no status)"} · id:{" "}
-                {(a.frontmatter.id as string) ?? "—"}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
       {tree.errors.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold text-[var(--color-danger)]">
+        <section className="mb-12">
+          <h2 className="mb-3 text-lg font-semibold text-[var(--color-danger)]">
             Parser errors
           </h2>
-          <ul className="mt-3 space-y-2 text-sm">
+          <ul className="space-y-2 text-sm">
             {tree.errors.map((e, i) => (
               <li
                 key={i}
@@ -91,6 +109,23 @@ export default function HomePage() {
           </ul>
         </section>
       )}
-    </main>
+
+      {view.orphans.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-[var(--color-warning)]">
+            Unplaced artifacts
+          </h2>
+          <p className="mb-2 text-sm text-[var(--color-muted)]">
+            These files don't fit the docs/pulse/ convention — Slice 6 surfaces
+            them on a dedicated page.
+          </p>
+          <ul className="space-y-1 font-mono text-xs">
+            {view.orphans.map((a) => (
+              <li key={a.relPath}>{a.relPath}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </PageShell>
   );
 }
