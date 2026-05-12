@@ -6,9 +6,9 @@ owners: [joao]
 created: 2026-05-03
 updated: 2026-05-06
 acceptance:
-  - audit_events table created with organization_id, actor_id, action, target_id, target_type, payload, created_at
-  - Index on (organization_id, created_at desc) for paginated views
-  - Backfill migration leaves existing data untouched
+  - "[x] audit_events table created with organization_id, actor_id, action, target_id, target_type, payload, created_at"
+  - "[x] Index on (organization_id, created_at desc) for paginated views"
+  - "[x] Backfill migration leaves existing data untouched"
 links:
   parent: add-audit-capture
   adr: [ADR-001-audit-storage]

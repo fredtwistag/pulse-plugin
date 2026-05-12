@@ -1,5 +1,6 @@
 import type { Frontmatter } from "@/lib/parser";
 import { AcceptanceList } from "./acceptance-list";
+import { SlugLink, SlugLinkList } from "./slug-link";
 import { StatusBadge } from "./status-badge";
 
 /**
@@ -43,12 +44,20 @@ export function FrontmatterCard({ fm }: { fm: Frontmatter }) {
         )}
         {created && <Row label="Created">{created}</Row>}
         {updated && <Row label="Updated">{updated}</Row>}
-        {parent && <Row label="Parent">{parent}</Row>}
+        {parent && (
+          <Row label="Parent">
+            <SlugLink slug={parent} />
+          </Row>
+        )}
         {adrLinks.length > 0 && (
-          <Row label="ADRs">{adrLinks.join(", ")}</Row>
+          <Row label="ADRs">
+            <SlugLinkList slugs={adrLinks} />
+          </Row>
         )}
         {related.length > 0 && (
-          <Row label="Related">{related.join(", ")}</Row>
+          <Row label="Related">
+            <SlugLinkList slugs={related} />
+          </Row>
         )}
       </dl>
 
