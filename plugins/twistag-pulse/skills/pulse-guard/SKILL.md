@@ -21,15 +21,20 @@ Invocation modes:
 - **`/pulse-guard --override "<reason>"`** — used by engineers to wave through a fail. Appends an entry to `.pulse/overrides.log.md` and re-runs the suite to confirm only overridden checks remain `fail` (the overall verdict becomes `overridden`).
 - **`pre-push` hook** — non-interactive. You run silently, write the review file, and exit non-zero on `fail`.
 
-## Slice 2 scope
+## All 8 sub-agents
 
-Active sub-agents:
+| # | Sub-agent | What it catches |
+|---|---|---|
+| 1 | `guard-spec-conformance` | Diff vs the linked task's `acceptance:` list — scope creep AND missing pieces |
+| 2 | `guard-security-regression` | Banned patterns from `.pulse/config.yaml`, secrets in diff, deprecated auth/authz reintroduction |
+| 3 | `guard-convention-drift` | House-style violations: naming, error handling, logging, file structure, module boundaries |
+| 4 | `guard-anti-pattern-repetition` | The same poor shape echoed across N files — a future-refactor signal |
+| 5 | `guard-performance-pitfalls` | N+1 queries, hot-loop allocations, missing indexes, unbounded recursion, accidental quadratic, sync I/O on hot paths |
+| 6 | `guard-test-integrity` | Tautological assertions, implementation-coupled tests, missing edge-case coverage, snapshot-only tests, disabled tests |
+| 7 | `guard-dependency-hygiene` | New deps (license + import-presence + duplicate-purpose), version pinning, transitive churn, known CVEs |
+| 8 | `guard-data-api-safety` | Breaking API/contract changes, unsafe migrations (NOT NULL w/o backfill, RENAME, DROP, unindexed-CONCURRENTLY), PII handling |
 
-1. `guard-spec-conformance`
-2. `guard-security-regression`
-3. `guard-convention-drift`
-
-The other 5 checks (anti-pattern repetition, performance pitfalls, test integrity, dependency hygiene, data/API safety) land in Slice 4. Their verdicts will appear in the same `verdicts:` map; their absence in Slice 2 reviews is normal.
+A check whose config sets `enabled: false` short-circuits to `pass` with an "Check disabled" note. Dispatch the agent anyway — the YAML shape stays uniform across configs.
 
 ## Required process
 
@@ -49,12 +54,15 @@ The other 5 checks (anti-pattern repetition, performance pitfalls, test integrit
     - It is OK to have 0 or N linked specs. The spec-conformance check
       handles the "0 specs" case as a warning.
 
-3.  Dispatch the 3 sub-agents IN PARALLEL.
-    - Use the Agent tool, one call per sub-agent.
+3.  Dispatch ALL 8 sub-agents IN PARALLEL.
+    - Use the Agent tool, one call per sub-agent. They are independent —
+      send all 8 tool calls in a single message.
     - To each sub-agent, pass:
         * the full diff
         * the list of linked spec.md paths
         * the path to .pulse/config.yaml
+        * for data-api-safety: ALSO pass the base branch ref so it can
+          run `git show <base>:<path>` to compare prior state.
     - Each sub-agent returns a YAML block in its final message — parse it
       into a structured verdict.
 
@@ -122,13 +130,18 @@ verdicts:
   spec-conformance: <pass|warning|fail|overridden>
   security-regression: <pass|warning|fail|overridden>
   convention-drift: <pass|warning|fail|overridden>
+  anti-pattern-repetition: <pass|warning|fail|overridden>
+  performance-pitfalls: <pass|warning|fail|overridden>
+  test-integrity: <pass|warning|fail|overridden>
+  dependency-hygiene: <pass|warning|fail|overridden>
+  data-api-safety: <pass|warning|fail|overridden>
 overall: <pass|warning|fail|overridden>
 ---
 
 # Guard review — <short-sha>
 
 ## Summary
-<one line: e.g. "3/3 pass" or "2/3 pass, 1 fail (overridden)">
+<one line: e.g. "8/8 pass" or "7/8 pass, 1 fail (overridden)">
 
 ## Findings
 
@@ -137,15 +150,7 @@ overall: <pass|warning|fail|overridden>
 
 <bulleted findings with file:line refs>
 
-### security-regression
-*<status>* — <overall_note>
-
-<findings>
-
-### convention-drift
-*<status>* — <overall_note>
-
-<findings>
+<!-- one section per check, in the order above -->
 ```
 
 If a check was overridden, append to its section:
@@ -171,4 +176,4 @@ If a check was overridden, append to its section:
 
 ## Status
 
-**v0.3.0 — Slice 2.** Orchestration + checks 1–3 + override flow. Slice 4 adds checks 4–8 (same dispatch shape, same verdict schema, same override flow — only the sub-agent list expands).
+**v0.4.0 — Slice 4.** All 8 checks active. Same orchestration shape as Slice 2 — only the sub-agent list expanded. Calibration tuning of the 5 new checks against real Twistag PRs is the work of the next 2-3 weeks; expect to update each agent's prompt as false-positive patterns emerge. The verdict YAML schema is stable; UI and dashboard already render the full set.

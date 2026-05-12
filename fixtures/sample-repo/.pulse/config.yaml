@@ -27,13 +27,23 @@ guard:
       - "Service files under src/services use kebab-case filenames."
       - "Database queries are made through the `db` client, not raw `pg`."
       - "Imports never reach across feature boundaries (no ../../../feature)."
-  anti_pattern_repetition: { enabled: false }
-  performance_pitfalls: { enabled: false }
-  test_integrity: { enabled: false }
+  anti_pattern_repetition:
+    enabled: true
+    threshold: 3
+    severity_on_fail: warning
+  performance_pitfalls:
+    enabled: true
+    severity_on_fail: error
+  test_integrity:
+    enabled: true
+    severity_on_fail: error
   dependency_hygiene:
-    enabled: false
+    enabled: true
     allowlist_licenses: [MIT, ISC, Apache-2.0, BSD-2-Clause, BSD-3-Clause]
-  data_api_safety: { enabled: false }
+    severity_on_fail: error
+  data_api_safety:
+    enabled: true
+    severity_on_fail: error
 
 overrides:
   require_second_engineer: [security_regression, data_api_safety]

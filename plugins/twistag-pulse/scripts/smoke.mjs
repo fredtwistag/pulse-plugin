@@ -52,16 +52,43 @@ check("templates/ contains state convention scaffolds", () => {
   }
 });
 
-check("agents/ contains the slice-2 guard sub-agents", () => {
+check("agents/ contains all 8 guard sub-agents", () => {
   const agentsDir = join(PLUGIN_ROOT, "agents");
   if (!existsSync(agentsDir)) throw new Error("agents/ missing");
   const required = [
     "guard-spec-conformance.md",
     "guard-security-regression.md",
     "guard-convention-drift.md",
+    "guard-anti-pattern-repetition.md",
+    "guard-performance-pitfalls.md",
+    "guard-test-integrity.md",
+    "guard-dependency-hygiene.md",
+    "guard-data-api-safety.md",
   ];
   for (const f of required) {
     if (!existsSync(join(agentsDir, f))) throw new Error(`agents/${f} missing`);
+  }
+});
+
+check("pulse-guard SKILL.md references every sub-agent", () => {
+  const skill = readFileSync(
+    join(PLUGIN_ROOT, "skills/pulse-guard/SKILL.md"),
+    "utf8",
+  );
+  const required = [
+    "guard-spec-conformance",
+    "guard-security-regression",
+    "guard-convention-drift",
+    "guard-anti-pattern-repetition",
+    "guard-performance-pitfalls",
+    "guard-test-integrity",
+    "guard-dependency-hygiene",
+    "guard-data-api-safety",
+  ];
+  for (const id of required) {
+    if (!skill.includes(id)) {
+      throw new Error(`pulse-guard SKILL.md does not reference ${id}`);
+    }
   }
 });
 
