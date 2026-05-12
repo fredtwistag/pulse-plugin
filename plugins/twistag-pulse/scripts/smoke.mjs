@@ -52,6 +52,27 @@ check("templates/ contains state convention scaffolds", () => {
   }
 });
 
+check("agents/ contains the slice-2 guard sub-agents", () => {
+  const agentsDir = join(PLUGIN_ROOT, "agents");
+  if (!existsSync(agentsDir)) throw new Error("agents/ missing");
+  const required = [
+    "guard-spec-conformance.md",
+    "guard-security-regression.md",
+    "guard-convention-drift.md",
+  ];
+  for (const f of required) {
+    if (!existsSync(join(agentsDir, f))) throw new Error(`agents/${f} missing`);
+  }
+});
+
+check("hooks/pre-push.mjs exists and is executable", () => {
+  const hookPath = join(PLUGIN_ROOT, "hooks/pre-push.mjs");
+  if (!existsSync(hookPath)) throw new Error("hooks/pre-push.mjs missing");
+  const stat = statSync(hookPath);
+  // Owner-execute bit (0o100) — sufficient for git to invoke it.
+  if ((stat.mode & 0o100) === 0) throw new Error("hooks/pre-push.mjs is not executable");
+});
+
 const failed = checks.filter((c) => !c.ok);
 for (const c of checks) {
   process.stdout.write(`${c.ok ? "  ok  " : " FAIL "} ${c.name}${c.ok ? "" : ` — ${c.err}`}\n`);

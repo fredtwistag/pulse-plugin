@@ -5,7 +5,8 @@
   "description": "Twistag Pulse Claude Code plugin",
   "scripts": {
     "smoke": "node scripts/smoke.mjs",
-    "test": "node scripts/smoke.mjs"
+    "test": "node scripts/smoke.mjs",
+    "install-hooks": "node scripts/install-hooks.mjs"
   },
   "license": "MIT"
 }

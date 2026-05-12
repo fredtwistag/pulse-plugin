@@ -9,7 +9,7 @@ import { SidebarLink } from "./sidebar-link";
  * config needed.
  */
 export function Sidebar() {
-  const { view } = loadView();
+  const { view, reviews, overrides } = loadView();
 
   return (
     <aside className="hidden w-72 shrink-0 overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-canvas-subtle)] py-6 md:block">
@@ -72,6 +72,15 @@ export function Sidebar() {
             {titleOf(adr.artifact) ?? adr.id}
           </SidebarLink>
         ))}
+      </SidebarSection>
+
+      <SidebarSection label="Guard">
+        <SidebarLink href="/reviews">
+          Reviews{reviews.length > 0 ? ` (${reviews.length})` : ""}
+        </SidebarLink>
+        <SidebarLink href="/audit">
+          Audit{overrides.length > 0 ? ` (${overrides.length})` : ""}
+        </SidebarLink>
       </SidebarSection>
     </aside>
   );

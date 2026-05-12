@@ -1,13 +1,22 @@
 import Link from "next/link";
 import { PageHeader, PageShell } from "@/components/page-shell";
 import { StatusBadge } from "@/components/status-badge";
+import { VerdictPill } from "@/components/verdict-pill";
 import { loadView } from "@/lib/load";
 import { titleOf } from "@/lib/title";
 import { countAll } from "@/lib/parser";
 
 export default function HomePage() {
-  const { view, tree, root } = loadView();
+  const { view, tree, root, reviews, overrides } = loadView();
   const counts = countAll(view);
+
+  // Guard health: pass rate over the most recent reviews. A review counts as
+  // a "pass" if every individual check passed (warnings don't disqualify;
+  // overridden does — it means a fail was waved through).
+  const recent = reviews.slice(0, 20);
+  const passed = recent.filter((r) => r.overall === "pass").length;
+  const passRate =
+    recent.length > 0 ? Math.round((passed / recent.length) * 100) : null;
 
   return (
     <PageShell>
@@ -45,6 +54,48 @@ export default function HomePage() {
           ))}
         </ul>
       </section>
+
+      {reviews.length > 0 && (
+        <section className="mb-12">
+          <div className="mb-3 flex items-end justify-between">
+            <h2 className="text-lg font-semibold">Guard health</h2>
+            <Link className="text-sm" href="/reviews">
+              All reviews →
+            </Link>
+          </div>
+          <div className="rounded-md border border-[var(--color-border)] p-5">
+            <div className="flex flex-wrap items-baseline gap-6">
+              <div>
+                <div className="text-xs uppercase tracking-wider text-[var(--color-muted)]">
+                  Pass rate · last {recent.length}
+                </div>
+                <div className="mt-1 text-3xl font-semibold">
+                  {passRate === null ? "—" : `${passRate}%`}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wider text-[var(--color-muted)]">
+                  Overrides
+                </div>
+                <div className="mt-1 text-3xl font-semibold">
+                  {overrides.length}
+                </div>
+              </div>
+              <div className="ml-auto flex flex-wrap gap-1.5">
+                {recent.map((r) => (
+                  <Link
+                    key={r.sha}
+                    href={`/reviews/${r.shortSha}`}
+                    title={`${r.shortSha} · ${r.overall} · ${r.engineer}`}
+                  >
+                    <VerdictPill verdict={r.overall} />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="mb-12">
         <div className="mb-3 flex items-end justify-between">
