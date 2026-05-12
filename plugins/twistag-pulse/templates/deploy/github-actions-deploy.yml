@@ -1,0 +1,61 @@
+# Pulse — starter GitHub Actions deploy workflow for a Vercel target.
+# `/pulse-ship` adapts this to the project before writing
+# `.github/workflows/deploy.yml`. Comments below are guidance for the agent;
+# they should be stripped from the emitted file unless they document a
+# non-obvious project-specific decision.
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # manual deploys via the Actions tab
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false # never cancel a deploy mid-flight
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # Gate: the test suite must be green before deploy is allowed to run.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test            # adapt to the project's actual command
+      - run: pnpm build           # build must succeed before deploy
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production       # GitHub deployment record + protection rules
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Vercel deploy. Project + team ids come from .pulse/config.yaml.ship.vercel
+      # and are injected as repo secrets.
+      - run: pnpm dlx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: pnpm dlx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - id: vercel-deploy
+        run: |
+          url=$(pnpm dlx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Record deployment
+        run: echo "Deployed ${{ github.sha }} → ${{ steps.vercel-deploy.outputs.url }}"

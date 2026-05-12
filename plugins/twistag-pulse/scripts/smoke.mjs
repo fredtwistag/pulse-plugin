@@ -92,6 +92,35 @@ check("pulse-guard SKILL.md references every sub-agent", () => {
   }
 });
 
+check("agents/ contains the slice-5 ship sub-agents", () => {
+  const agentsDir = join(PLUGIN_ROOT, "agents");
+  const required = ["ship-github-actions.md", "ship-vercel.md"];
+  for (const f of required) {
+    if (!existsSync(join(agentsDir, f))) throw new Error(`agents/${f} missing`);
+  }
+});
+
+check("pulse-ship SKILL.md references both ship sub-agents", () => {
+  const skill = readFileSync(
+    join(PLUGIN_ROOT, "skills/pulse-ship/SKILL.md"),
+    "utf8",
+  );
+  for (const id of ["ship-github-actions", "ship-vercel"]) {
+    if (!skill.includes(id)) {
+      throw new Error(`pulse-ship SKILL.md does not reference ${id}`);
+    }
+  }
+});
+
+check("templates/deploy/ contains starter deploy artifacts", () => {
+  const tplDir = join(PLUGIN_ROOT, "templates/deploy");
+  if (!existsSync(tplDir)) throw new Error("templates/deploy/ missing");
+  const required = ["github-actions-deploy.yml", "vercel.json", "rollback.sh"];
+  for (const f of required) {
+    if (!existsSync(join(tplDir, f))) throw new Error(`templates/deploy/${f} missing`);
+  }
+});
+
 check("hooks/pre-push.mjs exists and is executable", () => {
   const hookPath = join(PLUGIN_ROOT, "hooks/pre-push.mjs");
   if (!existsSync(hookPath)) throw new Error("hooks/pre-push.mjs missing");
